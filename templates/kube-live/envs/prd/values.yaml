@@ -1,11 +1,11 @@
 # Production environment overrides
 # NOTE: Add Chart.yaml to this folder to enable deployment
 
-replicaCount: 2
+service-chart:
+  app:
+    replicaCount: 2
 
-env:
-  - name: VERSION
-    value: "prd"
-  - name: COLOR
-    value: "#dc3545" # Red for production
-
+  configEnv:
+    pairs:
+      VERSION: "prd"
+      COLOR: "#dc3545" # Red for production

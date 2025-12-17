@@ -1,10 +1,11 @@
 # Test environment overrides
 # NOTE: Add Chart.yaml to this folder to enable deployment
 
-replicaCount: 1
+service-chart:
+  app:
+    replicaCount: 1
 
-env:
-  - name: VERSION
-    value: "tst"
-  - name: COLOR
-    value: "#17a2b8" # Blue for test
+  configEnv:
+    pairs:
+      VERSION: "tst"
+      COLOR: "#17a2b8" # Blue for test

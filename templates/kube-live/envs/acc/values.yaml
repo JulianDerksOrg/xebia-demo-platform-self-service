@@ -1,10 +1,11 @@
 # Acceptance environment overrides
 # NOTE: Add Chart.yaml to this folder to enable deployment
 
-replicaCount: 1
+service-chart:
+  app:
+    replicaCount: 1
 
-env:
-  - name: VERSION
-    value: "acc"
-  - name: COLOR
-    value: "#ffc107" # Yellow for acceptance
+  configEnv:
+    pairs:
+      VERSION: "acc"
+      COLOR: "#ffc107" # Yellow for acceptance
