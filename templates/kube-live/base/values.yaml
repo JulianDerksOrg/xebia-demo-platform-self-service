@@ -1,8 +1,15 @@
 # Base values shared across all environments
 
 service-chart:
+
+  image:
+    repository: {{GAR_REGISTRY}}/{{SERVICE_NAME}}
+    pullPolicy: Always
+    tag: "" # Set per environment
+
   app:
     replicaCount: 1
+
     resources:
       requests:
         cpu: 100m
@@ -10,6 +17,7 @@ service-chart:
       limits:
         cpu: 500m
         memory: 256Mi
+
     livenessProbe:
       enabled: true
       path: /health
@@ -17,6 +25,7 @@ service-chart:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
+
     readinessProbe:
       enabled: true
       path: /health
@@ -24,11 +33,6 @@ service-chart:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
-
-  image:
-    repository: {{GAR_REGISTRY}}/{{SERVICE_NAME}}
-    pullPolicy: Always
-    tag: "" # Set per environment
 
   service:
     type: ClusterIP
