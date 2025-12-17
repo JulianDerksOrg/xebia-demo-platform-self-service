@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   repository: {{GAR_REGISTRY}}/{{SERVICE_NAME}}
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "" # Set per environment
 
 service:
@@ -21,7 +21,7 @@ resources:
 
 env:
   - name: VERSION
-    value: "" # Set per environment
+    value: "base"
   - name: COLOR
     value: "#667eea"
 
@@ -44,3 +44,4 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
+
