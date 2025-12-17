@@ -70,7 +70,7 @@ jobs:
         run: |
           # Create the repo
           gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
-            --private \
+            --public \
             --description "${{ inputs.description }}" \
             || echo "Repo may already exist"
 
@@ -125,7 +125,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}" \
-            --private \
+            --public \
             --description "GitOps config for ${{ inputs.service_name }}" \
             || echo "Repo may already exist"
 
