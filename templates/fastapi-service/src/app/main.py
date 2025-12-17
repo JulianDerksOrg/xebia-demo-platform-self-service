@@ -40,8 +40,7 @@ async def root():
     </head>
     <body>
         <div class="container">
-            <h1>🚀 {{SERVICE_NAME}}</h1>
-            <p>{{DESCRIPTION}}</p>
+            <h1>{{SERVICE_NAME}} Service</h1>
             <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">
                 Version: {VERSION}
             </p>
