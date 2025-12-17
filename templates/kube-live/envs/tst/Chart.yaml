@@ -1,0 +1,10 @@
+# Presence of this file enables the tst environment in ArgoCD
+# Remove this file to disable the environment
+apiVersion: v2
+name: {{SERVICE_NAME}}-tst
+version: 0.0.0
+
+dependencies:
+  - name: service-chart
+    version: {{SERVICE_CHART_VERSION}}
+    repository: oci://{{GAR_HELM_REGISTRY}}
