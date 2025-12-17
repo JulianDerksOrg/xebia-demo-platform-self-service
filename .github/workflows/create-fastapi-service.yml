@@ -16,8 +16,8 @@ on:
           - discovery
           - identity
           - content
-          - engagement
-          - platform
+          - web
+          - mobile
       description:
         description: "Short description of the service"
         required: true
