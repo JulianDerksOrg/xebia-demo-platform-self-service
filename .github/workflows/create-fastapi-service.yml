@@ -238,7 +238,7 @@ jobs:
                     ref: values
                 destination:
                   server: https://kubernetes.default.svc
-                  namespace: "team-${{ inputs.team }}-{{ .path.basename }}"
+                  namespace: "${{ inputs.team }}-{{ .path.basename }}"
                 syncPolicy:
                   automated:
                     prune: true
