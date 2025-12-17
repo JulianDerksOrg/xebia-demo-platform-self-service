@@ -36,6 +36,14 @@ jobs:
       src_repo: ${{ steps.names.outputs.src_repo }}
       kube_repo: ${{ steps.names.outputs.kube_repo }}
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ env.GH_ORG }}
+
       - name: Validate service name
         run: |
           if [[ ! "${{ inputs.service_name }}" =~ ^[a-z][a-z0-9-]*$ ]]; then
@@ -43,6 +51,18 @@ jobs:
             exit 1
           fi
           echo "✅ Service name is valid: ${{ inputs.service_name }}"
+
+      - name: Check if service already exists
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          # Check if ApplicationSet file exists in appsets repo
+          if gh api "repos/${{ env.GH_ORG }}/xebia-demo-appsets-kube-live/contents/appsets/${{ inputs.service_name }}.yaml" --silent 2>/dev/null; then
+            echo "❌ Service '${{ inputs.service_name }}' already exists!"
+            echo "An ApplicationSet with this name is already registered."
+            exit 1
+          fi
+          echo "✅ Service does not exist, proceeding..."
 
       - name: Set repo names
         id: names
