@@ -122,6 +122,7 @@ jobs:
             sed -i "s/{{TEAM}}/${{ inputs.team }}/g" "$file"
             sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
             sed -i "s|{{GITOPS_REPO}}|${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}|g" "$file"
+            sed -i "s/{{GH_ORG}}/${{ env.GH_ORG }}/g" "$file"
           done
 
       - name: Commit and push source repo
