@@ -233,11 +233,11 @@ jobs:
           git commit -m "🚀 Add ApplicationSet for ${{ inputs.service_name }}" || echo "Nothing to commit"
           git push
 
-  summary:
+  results:
     needs: [validate, create-src-repo, create-kube-repo, create-applicationset]
     runs-on: ubuntu-latest
     steps:
-      - name: Print summary
+      - name: Print results
         run: |
           echo "## 🎉 Service Created Successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
