@@ -126,8 +126,8 @@ jobs:
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITOPS_REPO}.git" gitops-repo
           cd gitops-repo
           
-          # Update image.tag in base/values.yaml
-          sed -i "s/^  tag: .*/  tag: \"${TAG}\"/" base/values.yaml
+          # Update service-chart.image.tag in base/values.yaml
+          yq -i '.["service-chart"].image.tag = "'"${TAG}"'"' base/values.yaml
           
           # Commit and push
           git config user.name "platform-bot"
