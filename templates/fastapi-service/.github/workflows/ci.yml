@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY: europe-west4-docker.pkg.dev
   IMAGE_NAME: {{GAR_REGISTRY}}/{{SERVICE_NAME}}
+  GITOPS_REPO: {{GITOPS_REPO}}
 
 jobs:
   lint:
@@ -90,3 +91,38 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Determine image tag
+        id: image-tag
+        run: |
+          # Prefer git tag if present, otherwise use short SHA
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+            # Remove 'v' prefix if present (e.g., v1.0.0 -> 1.0.0)
+            TAG="${TAG#v}"
+          else
+            TAG="${{ github.sha }}"
+            TAG="${TAG:0:7}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "📦 Image tag: ${TAG}"
+
+      - name: Update GitOps repo with new image tag
+        env:
+          GH_TOKEN: ${{ secrets.GH_APP_TOKEN }}
+        run: |
+          TAG="${{ steps.image-tag.outputs.tag }}"
+          
+          # Clone gitops repo
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITOPS_REPO}.git" gitops-repo
+          cd gitops-repo
+          
+          # Update image.tag in base/values.yaml
+          sed -i "s/^  tag: .*/  tag: \"${TAG}\"/" base/values.yaml
+          
+          # Commit and push
+          git config user.name "platform-bot"
+          git config user.email "platform@julianderksorg.com"
+          git add base/values.yaml
+          git diff --cached --quiet || git commit -m "🚀 Update image tag to ${TAG}"
+          git push

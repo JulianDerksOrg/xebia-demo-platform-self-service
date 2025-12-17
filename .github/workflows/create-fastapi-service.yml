@@ -120,8 +120,8 @@ jobs:
             sed -i "s/{{SERVICE_NAME}}/${{ inputs.service_name }}/g" "$file"
             sed -i "s/{{SERVICE_NAME_UNDERSCORE}}/${SERVICE_NAME_UNDERSCORE}/g" "$file"
             sed -i "s/{{TEAM}}/${{ inputs.team }}/g" "$file"
-            sed -i "s/{{DESCRIPTION}}/${{ inputs.description }}/g" "$file"
             sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
+            sed -i "s|{{GITOPS_REPO}}|${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}|g" "$file"
           done
 
       - name: Commit and push source repo
@@ -278,7 +278,6 @@ jobs:
           echo "3. ArgoCD will automatically deploy to dev environment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ArgoCD Applications" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ inputs.team }}-${{ inputs.service_name }}-dev" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ inputs.team }}-${{ inputs.service_name }}-tst" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ inputs.team }}-${{ inputs.service_name }}-acc" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ inputs.team }}-${{ inputs.service_name }}-prd" >> $GITHUB_STEP_SUMMARY
