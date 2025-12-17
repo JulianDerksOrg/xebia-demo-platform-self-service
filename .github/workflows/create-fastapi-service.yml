@@ -69,13 +69,13 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          # Check if ApplicationSet file exists in appsets repo
-          if gh api "repos/${{ env.GH_ORG }}/xebia-demo-appsets-kube-live/contents/appsets/${{ inputs.service_name }}.yaml" --silent 2>/dev/null; then
-            echo "❌ Service '${{ inputs.service_name }}' already exists!"
+          # Check if ApplicationSet file exists in appsets repo (scoped by team)
+          if gh api "repos/${{ env.GH_ORG }}/xebia-demo-appsets-kube-live/contents/appsets/${{ inputs.team }}/${{ inputs.service_name }}.yaml" --silent 2>/dev/null; then
+            echo "❌ Service '${{ inputs.service_name }}' already exists for team '${{ inputs.team }}'!"
             echo "An ApplicationSet with this name is already registered."
             exit 1
           fi
-          echo "✅ Service does not exist, proceeding..."
+          echo "✅ Service does not exist for team ${{ inputs.team }}, proceeding..."
 
       - name: Set repo names
         id: names
@@ -211,11 +211,12 @@ jobs:
 
       - name: Create ApplicationSet
         run: |
-          cat > appsets/${{ inputs.service_name }}.yaml << 'EOF'
+          mkdir -p appsets/${{ inputs.team }}
+          cat > appsets/${{ inputs.team }}/${{ inputs.service_name }}.yaml << 'EOF'
           apiVersion: argoproj.io/v1alpha1
           kind: ApplicationSet
           metadata:
-            name: ${{ inputs.service_name }}
+            name: ${{ inputs.team }}-${{ inputs.service_name }}
             namespace: argocd
             labels:
               primetime.io/app: ${{ inputs.service_name }}
@@ -231,7 +232,7 @@ jobs:
                     - path: envs/*/Chart.yaml
             template:
               metadata:
-                name: "${{ inputs.service_name }}-{{ .path.basename }}"
+                name: "${{ inputs.team }}-${{ inputs.service_name }}-{{ .path.basename }}"
                 labels:
                   primetime.io/app: ${{ inputs.service_name }}
                   primetime.io/team: ${{ inputs.team }}
@@ -265,7 +266,7 @@ jobs:
           git config user.name "platform-bot"
           git config user.email "platform@julianderksorg.com"
           git add -A
-          git commit -m "🚀 Add ApplicationSet for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git commit -m "🚀 Add ApplicationSet for ${{ inputs.team }}-${{ inputs.service_name }}" || echo "Nothing to commit"
           git push
 
   results:
@@ -286,7 +287,7 @@ jobs:
           echo "3. ArgoCD will automatically deploy to dev environment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ArgoCD Applications" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ inputs.service_name }}-dev" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ inputs.service_name }}-tst" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ inputs.service_name }}-acc" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ inputs.service_name }}-prd" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.team }}-${{ inputs.service_name }}-dev" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.team }}-${{ inputs.service_name }}-tst" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.team }}-${{ inputs.service_name }}-acc" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.team }}-${{ inputs.service_name }}-prd" >> $GITHUB_STEP_SUMMARY
