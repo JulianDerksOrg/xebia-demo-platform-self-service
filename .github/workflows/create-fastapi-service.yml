@@ -29,19 +29,6 @@ env:
   GAR_HELM_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/helm
 
 jobs:
-  generate-token:
-    runs-on: ubuntu-latest
-    outputs:
-      token: ${{ steps.app-token.outputs.token }}
-    steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-          owner: ${{ env.GH_ORG }}
-
   validate:
     runs-on: ubuntu-latest
     outputs:
@@ -63,15 +50,23 @@ jobs:
           echo "kube_repo=${{ inputs.service_name }}-kube-live" >> $GITHUB_OUTPUT
 
   create-src-repo:
-    needs: [generate-token, validate]
+    needs: [validate]
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ env.GH_ORG }}
+
       - name: Checkout platform-self-service
         uses: actions/checkout@v4
 
       - name: Create source repository
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           # Create the repo
           gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
@@ -81,7 +76,7 @@ jobs:
 
       - name: Clone and populate source repo
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SERVICE_NAME_UNDERSCORE: ${{ inputs.service_name }}_
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}.git" src-repo
@@ -100,6 +95,8 @@ jobs:
           done
 
       - name: Commit and push source repo
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           cd src-repo
           git config user.name "platform-bot"
@@ -107,19 +104,25 @@ jobs:
           git add -A
           git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }}" || echo "Nothing to commit"
           git push origin main || git push -u origin main
-        env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
 
   create-kube-repo:
-    needs: [generate-token, validate]
+    needs: [validate]
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ env.GH_ORG }}
+
       - name: Checkout platform-self-service
         uses: actions/checkout@v4
 
       - name: Create kube-live repository
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}" \
             --private \
@@ -128,7 +131,7 @@ jobs:
 
       - name: Clone and populate kube-live repo
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git" kube-repo
           cd kube-repo
@@ -145,7 +148,7 @@ jobs:
 
       - name: Commit and push kube-live repo
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           cd kube-repo
           git config user.name "platform-bot"
@@ -155,14 +158,22 @@ jobs:
           git push origin main || git push -u origin main
 
   create-applicationset:
-    needs: [generate-token, validate, create-kube-repo]
+    needs: [validate, create-kube-repo]
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ env.GH_ORG }}
+
       - name: Checkout appsets-kube-live
         uses: actions/checkout@v4
         with:
           repository: ${{ env.GH_ORG }}/xebia-demo-appsets-kube-live
-          token: ${{ needs.generate-token.outputs.token }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Create ApplicationSet
         run: |
@@ -214,7 +225,7 @@ jobs:
 
       - name: Commit and push ApplicationSet
         env:
-          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config user.name "platform-bot"
           git config user.email "platform@julianderksorg.com"
