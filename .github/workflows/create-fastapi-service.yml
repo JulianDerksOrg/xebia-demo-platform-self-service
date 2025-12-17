@@ -242,6 +242,10 @@ jobs:
                   repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
                   targetRevision: main
                   path: envs/{{ .path.basename }}
+                  helm:
+                    valueFiles:
+                      - ../../base/values.yaml
+                      - values.yaml
                 destination:
                   server: https://kubernetes.default.svc
                   namespace: "${{ inputs.team }}-{{ .path.basename }}"
