@@ -13,8 +13,11 @@ on:
         type: choice
         options:
           - streaming
+          - discovery
+          - identity
+          - content
+          - engagement
           - platform
-          - data
       description:
         description: 'Short description of the service'
         required: true
