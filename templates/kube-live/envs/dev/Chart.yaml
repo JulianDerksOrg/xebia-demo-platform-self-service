@@ -1,5 +1,0 @@
-# Presence of this file enables the dev environment in ArgoCD
-# Remove this file to disable the environment
-apiVersion: v2
-name: {{SERVICE_NAME}}-dev
-version: 0.0.0

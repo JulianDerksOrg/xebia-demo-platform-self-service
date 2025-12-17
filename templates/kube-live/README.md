@@ -8,11 +8,9 @@ GitOps configuration for {{SERVICE_NAME}}.
 ├── base/
 │   └── values.yaml      # Base Helm values shared across environments
 └── envs/
-    ├── dev/
+    ├── tst/
     │   ├── Chart.yaml   # Environment enabled
     │   └── values.yaml
-    ├── tst/
-    │   └── values.yaml  # Add Chart.yaml to enable
     ├── acc/
     │   └── values.yaml  # Add Chart.yaml to enable
     └── prd/
@@ -26,12 +24,17 @@ ArgoCD only deploys environments that have a `Chart.yaml` file present.
 - **To enable an environment**: Add `Chart.yaml` to the env folder
 - **To disable an environment**: Remove `Chart.yaml` from the env folder
 
-Example `Chart.yaml`:
+Example `Chart.yaml` to enable an environment:
 
 ```yaml
 apiVersion: v2
-name: {{SERVICE_NAME}}-tst
+name: {{SERVICE_NAME}}-<env>
 version: 0.0.0
+
+dependencies:
+  - name: service-chart
+    version: {{SERVICE_CHART_VERSION}}
+    repository: oci://{{GAR_HELM_REGISTRY}}
 ```
 
 ## Deployment
@@ -40,19 +43,18 @@ This repo is managed by ArgoCD via ApplicationSet. Changes pushed here will auto
 
 ### Environments
 
-| Environment | Namespace         | Status         |
-| ----------- | ----------------- | -------------- |
-| dev         | team-{{TEAM}}-dev | Enabled        |
-| tst         | team-{{TEAM}}-tst | Add Chart.yaml |
-| acc         | team-{{TEAM}}-acc | Add Chart.yaml |
-| prd         | team-{{TEAM}}-prd | Add Chart.yaml |
+| Environment | Namespace    | Status         |
+| ----------- | ------------ | -------------- |
+| tst         | {{TEAM}}-tst | Enabled        |
+| acc         | {{TEAM}}-acc | Add Chart.yaml |
+| prd         | {{TEAM}}-prd | Add Chart.yaml |
 
 ## Promotion Flow
 
-1. Develop and test in `dev`
-2. When ready for `tst`, add `Chart.yaml` to `envs/tst/`
-3. ArgoCD automatically creates the `tst` Application
-4. Repeat for `acc` and `prd`
+1. Develop and test in `tst`
+2. When ready for `acc`, add `Chart.yaml` to `envs/acc/`
+3. ArgoCD automatically creates the `acc` Application
+4. Repeat for `prd`
 
 ## Updating Image Tag
 

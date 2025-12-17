@@ -3,10 +3,6 @@ name: "🚀 Create FastAPI Service"
 on:
   workflow_dispatch:
     inputs:
-      service_name:
-        description: "Service name (lowercase, hyphens allowed, e.g., my-service)"
-        required: true
-        type: string
       team:
         description: "Team name"
         required: true
@@ -18,8 +14,8 @@ on:
           - content
           - web
           - mobile
-      description:
-        description: "Short description of the service"
+      service_name:
+        description: "Service name (lowercase, hyphens allowed, e.g., my-service)"
         required: true
         type: string
 
@@ -105,7 +101,7 @@ jobs:
           # Create the repo
           gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
             --public \
-            --description "${{ inputs.description }}" \
+            --description "Source code for ${{ inputs.service_name }}" \
             || echo "Repo may already exist"
 
       - name: Clone and populate source repo
@@ -178,6 +174,8 @@ jobs:
             sed -i "s/{{SERVICE_NAME}}/${{ inputs.service_name }}/g" "$file"
             sed -i "s/{{TEAM}}/${{ inputs.team }}/g" "$file"
             sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
+            sed -i "s|{{GAR_HELM_REGISTRY}}|${{ env.GAR_HELM_REGISTRY }}|g" "$file"
+            sed -i "s/{{SERVICE_CHART_VERSION}}/${{ env.SERVICE_CHART_VERSION }}/g" "$file"
           done
 
       - name: Commit and push kube-live repo
