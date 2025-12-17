@@ -44,6 +44,19 @@ jobs:
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           owner: ${{ env.GH_ORG }}
 
+      - name: Validate team membership
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          TEAM="${{ inputs.team }}"
+          USER="${{ github.actor }}"
+
+          if ! gh api "/orgs/${{ env.GH_ORG }}/teams/${TEAM}/memberships/${USER}" --silent 2>/dev/null; then
+            echo "❌ User ${USER} is not a member of team ${TEAM}"
+            exit 1
+          fi
+          echo "✅ User ${USER} is a member of team ${TEAM}"
+
       - name: Validate service name
         run: |
           if [[ ! "${{ inputs.service_name }}" =~ ^[a-z][a-z0-9-]*$ ]]; then
