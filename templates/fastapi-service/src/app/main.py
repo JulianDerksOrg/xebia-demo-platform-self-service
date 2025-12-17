@@ -42,7 +42,9 @@ async def root():
         <div class="container">
             <h1>🚀 {{SERVICE_NAME}}</h1>
             <p>{{DESCRIPTION}}</p>
-            <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">Version: {VERSION}</p>
+            <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">
+                Version: {VERSION}
+            </p>
         </div>
     </body>
     </html>
