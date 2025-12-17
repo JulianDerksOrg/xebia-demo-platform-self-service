@@ -46,8 +46,8 @@ jobs:
       - name: Set repo names
         id: names
         run: |
-          echo "src_repo=${{ inputs.service_name }}-src" >> $GITHUB_OUTPUT
-          echo "kube_repo=${{ inputs.service_name }}-kube-live" >> $GITHUB_OUTPUT
+          echo "src_repo=xebia-demo-${{ inputs.service_name }}-src" >> $GITHUB_OUTPUT
+          echo "kube_repo=xebia-demo-${{ inputs.service_name }}-kube-live" >> $GITHUB_OUTPUT
 
   create-src-repo:
     needs: [validate]
