@@ -237,17 +237,10 @@ jobs:
                   primetime.io/environment: "{{ .path.basename }}"
               spec:
                 project: default
-                sources:
-                  - repoURL: ${{ env.GAR_HELM_REGISTRY }}
-                    chart: service-chart
-                    targetRevision: ${{ env.SERVICE_CHART_VERSION }}
-                    helm:
-                      valueFiles:
-                        - $values/base/values.yaml
-                        - $values/envs/{{ .path.basename }}/values.yaml
-                  - repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
-                    targetRevision: main
-                    ref: values
+                source:
+                  repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
+                  targetRevision: main
+                  path: envs/{{ .path.basename }}
                 destination:
                   server: https://kubernetes.default.svc
                   namespace: "${{ inputs.team }}-{{ .path.basename }}"
