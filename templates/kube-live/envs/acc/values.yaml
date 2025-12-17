@@ -1,0 +1,21 @@
+# Acceptance environment overrides
+# NOTE: Add Chart.yaml to this folder to enable deployment
+
+image:
+  tag: "latest"
+
+replicaCount: 1
+
+env:
+  - name: VERSION
+    value: "acc"
+  - name: COLOR
+    value: "#ffc107" # Yellow for acceptance
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

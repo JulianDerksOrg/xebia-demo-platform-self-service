@@ -1,0 +1,21 @@
+# Production environment overrides
+# NOTE: Add Chart.yaml to this folder to enable deployment
+
+image:
+  tag: "" # Set to specific version for production
+
+replicaCount: 2
+
+env:
+  - name: VERSION
+    value: "prd"
+  - name: COLOR
+    value: "#dc3545" # Red for production
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi

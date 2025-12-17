@@ -1,0 +1,244 @@
+name: "🚀 Create FastAPI Service"
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: 'Service name (lowercase, hyphens allowed, e.g., my-service)'
+        required: true
+        type: string
+      team:
+        description: 'Team name'
+        required: true
+        type: choice
+        options:
+          - streaming
+          - platform
+          - data
+      description:
+        description: 'Short description of the service'
+        required: true
+        type: string
+
+env:
+  GH_ORG: JulianDerksOrg
+  GAR_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/applications
+  GAR_HELM_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/helm
+
+jobs:
+  generate-token:
+    runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.app-token.outputs.token }}
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ env.GH_ORG }}
+
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      src_repo: ${{ steps.names.outputs.src_repo }}
+      kube_repo: ${{ steps.names.outputs.kube_repo }}
+    steps:
+      - name: Validate service name
+        run: |
+          if [[ ! "${{ inputs.service_name }}" =~ ^[a-z][a-z0-9-]*$ ]]; then
+            echo "❌ Service name must be lowercase, start with a letter, and contain only letters, numbers, and hyphens"
+            exit 1
+          fi
+          echo "✅ Service name is valid: ${{ inputs.service_name }}"
+
+      - name: Set repo names
+        id: names
+        run: |
+          echo "src_repo=${{ inputs.service_name }}-src" >> $GITHUB_OUTPUT
+          echo "kube_repo=${{ inputs.service_name }}-kube-live" >> $GITHUB_OUTPUT
+
+  create-src-repo:
+    needs: [generate-token, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout platform-self-service
+        uses: actions/checkout@v4
+
+      - name: Create source repository
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          # Create the repo
+          gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
+            --private \
+            --description "${{ inputs.description }}" \
+            || echo "Repo may already exist"
+
+      - name: Clone and populate source repo
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}.git" src-repo
+          cd src-repo
+
+          # Copy template files
+          cp -r ../templates/fastapi-service/. .
+
+          # Replace placeholders
+          find . -type f -name "*.py" -o -name "*.toml" -o -name "*.yml" -o -name "*.yaml" -o -name "*.md" -o -name "Dockerfile" | while read file; do
+            sed -i "s/{{SERVICE_NAME}}/${{ inputs.service_name }}/g" "$file"
+            sed -i "s/{{SERVICE_NAME_UNDERSCORE}}/${SERVICE_NAME_UNDERSCORE}/g" "$file"
+            sed -i "s/{{TEAM}}/${{ inputs.team }}/g" "$file"
+            sed -i "s/{{DESCRIPTION}}/${{ inputs.description }}/g" "$file"
+            sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
+          done
+        env:
+          SERVICE_NAME_UNDERSCORE: ${{ inputs.service_name }}_
+
+      - name: Commit and push source repo
+        run: |
+          cd src-repo
+          git config user.name "platform-bot"
+          git config user.email "platform@julianderksorg.com"
+          git add -A
+          git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git push origin main || git push -u origin main
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+
+  create-kube-repo:
+    needs: [generate-token, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout platform-self-service
+        uses: actions/checkout@v4
+
+      - name: Create kube-live repository
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          gh repo create "${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}" \
+            --private \
+            --description "GitOps config for ${{ inputs.service_name }}" \
+            || echo "Repo may already exist"
+
+      - name: Clone and populate kube-live repo
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git" kube-repo
+          cd kube-repo
+
+          # Copy template files
+          cp -r ../templates/kube-live/. .
+
+          # Replace placeholders
+          find . -type f -name "*.yaml" -o -name "*.yml" -o -name "*.md" | while read file; do
+            sed -i "s/{{SERVICE_NAME}}/${{ inputs.service_name }}/g" "$file"
+            sed -i "s/{{TEAM}}/${{ inputs.team }}/g" "$file"
+            sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
+          done
+
+      - name: Commit and push kube-live repo
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          cd kube-repo
+          git config user.name "platform-bot"
+          git config user.email "platform@julianderksorg.com"
+          git add -A
+          git commit -m "🎉 Initial GitOps config for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git push origin main || git push -u origin main
+
+  create-applicationset:
+    needs: [generate-token, validate, create-kube-repo]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout appsets-kube-live
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GH_ORG }}/xebia-demo-appsets-kube-live
+          token: ${{ needs.generate-token.outputs.token }}
+
+      - name: Create ApplicationSet
+        run: |
+          cat > appsets/${{ inputs.service_name }}.yaml << 'EOF'
+          apiVersion: argoproj.io/v1alpha1
+          kind: ApplicationSet
+          metadata:
+            name: ${{ inputs.service_name }}
+            namespace: argocd
+          spec:
+            goTemplate: true
+            goTemplateOptions: ["missingkey=error"]
+            generators:
+              # Only creates apps for envs that have Chart.yaml (environment readiness pattern)
+              # .gitkeep dirs are ignored - add Chart.yaml to enable an environment
+              - git:
+                  repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
+                  revision: main
+                  files:
+                    - path: envs/*/Chart.yaml
+            template:
+              metadata:
+                name: "${{ inputs.service_name }}-{{ .path.basename }}"
+                labels:
+                  team: ${{ inputs.team }}
+                  app: ${{ inputs.service_name }}
+                  env: "{{ .path.basename }}"
+              spec:
+                project: default
+                sources:
+                  - repoURL: ${{ env.GAR_HELM_REGISTRY }}
+                    chart: service-chart
+                    targetRevision: 0.0.0-dev.43c569a
+                    helm:
+                      valueFiles:
+                        - $values/base/values.yaml
+                        - $values/envs/{{ .path.basename }}/values.yaml
+                  - repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
+                    targetRevision: main
+                    ref: values
+                destination:
+                  server: https://kubernetes.default.svc
+                  namespace: "team-${{ inputs.team }}-{{ .path.basename }}"
+                syncPolicy:
+                  automated:
+                    prune: true
+                    selfHeal: true
+          EOF
+
+      - name: Commit and push ApplicationSet
+        env:
+          GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+        run: |
+          git config user.name "platform-bot"
+          git config user.email "platform@julianderksorg.com"
+          git add -A
+          git commit -m "🚀 Add ApplicationSet for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git push
+
+  summary:
+    needs: [validate, create-src-repo, create-kube-repo, create-applicationset]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print summary
+        run: |
+          echo "## 🎉 Service Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Repositories" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source**: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitOps**: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Clone the source repo and start developing" >> $GITHUB_STEP_SUMMARY
+          echo "2. Push to main to trigger CI and build Docker image" >> $GITHUB_STEP_SUMMARY
+          echo "3. ArgoCD will automatically deploy to dev environment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ArgoCD Applications" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.service_name }}-dev" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.service_name }}-tst" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.service_name }}-acc" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ inputs.service_name }}-prd" >> $GITHUB_STEP_SUMMARY
