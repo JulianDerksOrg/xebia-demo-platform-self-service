@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       service_name:
-        description: 'Service name (lowercase, hyphens allowed, e.g., my-service)'
+        description: "Service name (lowercase, hyphens allowed, e.g., my-service)"
         required: true
         type: string
       team:
-        description: 'Team name'
+        description: "Team name"
         required: true
         type: choice
         options:
@@ -19,7 +19,7 @@ on:
           - engagement
           - platform
       description:
-        description: 'Short description of the service'
+        description: "Short description of the service"
         required: true
         type: string
 
@@ -82,6 +82,7 @@ jobs:
       - name: Clone and populate source repo
         env:
           GH_TOKEN: ${{ needs.generate-token.outputs.token }}
+          SERVICE_NAME_UNDERSCORE: ${{ inputs.service_name }}_
         run: |
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}.git" src-repo
           cd src-repo
@@ -97,8 +98,6 @@ jobs:
             sed -i "s/{{DESCRIPTION}}/${{ inputs.description }}/g" "$file"
             sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
           done
-        env:
-          SERVICE_NAME_UNDERSCORE: ${{ inputs.service_name }}_
 
       - name: Commit and push source repo
         run: |
