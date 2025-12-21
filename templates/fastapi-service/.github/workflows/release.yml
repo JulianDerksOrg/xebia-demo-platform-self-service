@@ -141,11 +141,11 @@ jobs:
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITOPS_REPO}.git" gitops-repo
           cd gitops-repo
 
-          yq -i '.["service-chart"].image.tag = "'"${TAG}"'"' base/values.yaml
+          yq -i '.["service-chart"].image.tag = "'"${TAG}"'"' envs/tst/values.yaml
 
           git config user.name "platform-bot"
           git config user.email "platform@julianderksorg.com"
 
-          git add base/values.yaml
+          git add envs/tst/values.yaml
           git diff --cached --quiet || git commit -m "🚀 Release ${TAG}"
           git push
