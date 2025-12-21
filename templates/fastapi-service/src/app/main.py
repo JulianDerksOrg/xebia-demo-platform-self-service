@@ -45,15 +45,9 @@ async def root():
             <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">
                 Version: {VERSION}
             </p>
-            <p style="
-                font-family: monospace;
-                font-size: 0.8rem;
-                opacity: 0.6;
-                background: rgba(0,0,0,0.2);
-                padding: 0.5rem;
-                border-radius: 8px;
-            ">
+            <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">
                 🔐 API Token (from secret-env): {API_TOKEN}
+            </p>
             </p>
         </div>
     </body>
