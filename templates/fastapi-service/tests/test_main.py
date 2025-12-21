@@ -13,7 +13,9 @@ async def client():
 async def test_root(client):
     response = await client.get("/")
     assert response.status_code == 200
-    assert "{{SERVICE_NAME}}" in response.text
+    assert "Service" in response.text
+    assert "Version:" in response.text
+    assert "API Token" in response.text
 
 
 async def test_health(client):
