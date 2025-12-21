@@ -138,7 +138,7 @@ jobs:
 
           # Create initial tag to trigger release pipeline
           git tag 0.0.0
-          git push origin 0.0.0
+          git push origin --tags
 
   create-kube-repo:
     needs: [validate]
