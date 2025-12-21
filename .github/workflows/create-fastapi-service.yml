@@ -23,7 +23,7 @@ env:
   GH_ORG: JulianDerksOrg
   GAR_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/applications
   GAR_HELM_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/helm
-  SERVICE_CHART_VERSION: "0.0.0-dev.adf9111"
+  SERVICE_CHART_VERSION: "0.0.0-dev.sha-7c47df8"
 
 jobs:
   validate:
@@ -237,12 +237,13 @@ jobs:
                   primetime.io/team: ${{ inputs.team }}
                   primetime.io/environment: "{{ .path.basename }}"
               spec:
-                project: default
+                project: ${{ inputs.team }}-team
                 source:
                   repoURL: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}.git
                   targetRevision: main
                   path: envs/{{ .path.basename }}
                   helm:
+                    releaseName: "${{ inputs.service_name }}-{{ .path.basename }}"
                     valueFiles:
                       - ../../base/values.yaml
                       - values.yaml

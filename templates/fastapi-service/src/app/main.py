@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse
 
 VERSION = os.getenv("VERSION", "not-set")
 COLOR = os.getenv("COLOR", "#667eea")
+API_TOKEN = os.getenv("API_TOKEN", "not-set")
 
 app = FastAPI(title="{{SERVICE_NAME}}", version=VERSION)
 
@@ -43,6 +44,16 @@ async def root():
             <h1>{{SERVICE_NAME}} Service</h1>
             <p style="font-family: monospace; font-size: 0.8rem; opacity: 0.6;">
                 Version: {VERSION}
+            </p>
+            <p style="
+                font-family: monospace; 
+                font-size: 0.8rem; 
+                opacity: 0.6; 
+                background: rgba(0,0,0,0.2); 
+                padding: 0.5rem; 
+                border-radius: 8px;
+            ">
+                🔐 API Token (from secret-env): {API_TOKEN}
             </p>
         </div>
     </body>
