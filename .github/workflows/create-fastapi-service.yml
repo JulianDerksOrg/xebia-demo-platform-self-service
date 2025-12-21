@@ -136,9 +136,18 @@ jobs:
           git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }} [ci skip]" || echo "Nothing to commit"
           git push origin main || git push -u origin main
 
-          # Create initial tag to trigger release pipeline
+          # Create initial tag for versioning
           git tag 0.0.0
           git push origin 0.0.0
+
+      - name: Trigger release pipeline
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          # Create a release workflow dispatch to trigger release pipeline
+          gh workflow run release \
+            --repo "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
+            --field tag=0.0.0
 
   create-kube-repo:
     needs: [validate]

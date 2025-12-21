@@ -4,12 +4,18 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        required: true
+        type: string
 
 env:
   REGISTRY: europe-west4-docker.pkg.dev
-  IMAGE_NAME: {{GAR_REGISTRY}}/{{SERVICE_NAME}}
-  GITOPS_REPO: {{GITOPS_REPO}}
-  GH_ORG: {{GH_ORG}}
+  IMAGE_NAME: "{{GAR_REGISTRY}}/{{SERVICE_NAME}}"
+  GITOPS_REPO: "{{GITOPS_REPO}}"
+  GH_ORG: "{{GH_ORG}}"
 
 jobs:
   guard-main:
@@ -21,12 +27,17 @@ jobs:
 
       - name: Ensure tag is on main
         run: |
-          git fetch origin main
-          if git merge-base --is-ancestor ${{ github.sha }} origin/main; then
-            echo "✅ Tag is on main"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "✅ Workflow dispatch - skipping tag validation"
+            echo "Using tag: ${{ github.event.inputs.tag }}"
           else
-            echo "❌ Tag is NOT on main"
-            exit 1
+            git fetch origin main
+            if git merge-base --is-ancestor ${{ github.sha }} origin/main; then
+              echo "✅ Tag is on main"
+            else
+              echo "❌ Tag is NOT on main"
+              exit 1
+            fi
           fi
 
   lint:
@@ -101,11 +112,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Determine image tag (from git tag)
+      - name: Determine image tag (from git tag or workflow dispatch)
         id: image-tag
         run: |
-          TAG="${{ github.ref_name }}"
-          TAG="${TAG#v}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+            TAG="${TAG#v}"
+          fi
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "📦 Release image tag: ${TAG}"
 
