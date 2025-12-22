@@ -23,7 +23,7 @@ env:
   GH_ORG: JulianDerksOrg
   GAR_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/applications
   GAR_HELM_REGISTRY: europe-west4-docker.pkg.dev/sandbox-9456/helm
-  SERVICE_CHART_VERSION: "0.0.0-dev.sha-9573fb0"
+  SERVICE_CHART_VERSION: "0.0.0-dev.sha-da0f275"
 
 jobs:
   validate:
