@@ -1,7 +1,5 @@
 # {{SERVICE_NAME}}
 
-{{DESCRIPTION}}
-
 ## Development
 
 ### Prerequisites
