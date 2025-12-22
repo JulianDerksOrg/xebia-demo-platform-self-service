@@ -18,16 +18,6 @@ on:
         description: "Service name (lowercase, hyphens allowed, e.g., my-service)"
         required: true
         type: string
-      enable_ingress:
-        description: "Enable ingress"
-        required: false
-        type: boolean
-        default: false
-      enable_database:
-        description: "Enable database"
-        required: false
-        type: boolean
-        default: false
 
 env:
   GH_ORG: JulianDerksOrg
@@ -187,29 +177,6 @@ jobs:
             sed -i "s|{{GAR_REGISTRY}}|${{ env.GAR_REGISTRY }}|g" "$file"
             sed -i "s|{{GAR_HELM_REGISTRY}}|${{ env.GAR_HELM_REGISTRY }}|g" "$file"
             sed -i "s/{{SERVICE_CHART_VERSION}}/${{ env.SERVICE_CHART_VERSION }}/g" "$file"
-          done
-
-          # Template ingress and database configurations
-          for env in tst acc prd; do
-            values_file="envs/${env}/values.yaml"
-            
-            # Generate ingress configuration
-            if [ "${{ inputs.enable_ingress }}" = "true" ]; then
-              ingress_config="  ingress:\n    enabled: true\n    className: \"nginx\"\n    annotations:\n      cert-manager.io/cluster-issuer: $([ "$env" = "prd" ] && echo "letsencrypt-prod" || echo "letsencrypt-staging")\n    hostname: \"${{ inputs.service_name }}-${env}.julianderksorg.duckdns.org\""
-            else
-              ingress_config=""
-            fi
-            
-            # Generate database configuration
-            if [ "${{ inputs.enable_database }}" = "true" ]; then
-              database_config="  gcp:\n    projectId: \"sandbox-9456\"\n    serviceAccount:\n      enabled: true\n    database:\n      enabled: true\n      instanceName: \"csql-postgress-sandbox\"\n\n  secretEnv:\n    pairs:\n      DB_PASSWORD: \"db-password\""
-            else
-              database_config=""
-            fi
-            
-            # Replace placeholders in values file
-            sed -i "s/{{ENABLE_INGRESS}}/$ingress_config/g" "$values_file"
-            sed -i "s/{{ENABLE_DATABASE}}/$database_config/g" "$values_file"
           done
 
       - name: Commit and push kube-live repo
