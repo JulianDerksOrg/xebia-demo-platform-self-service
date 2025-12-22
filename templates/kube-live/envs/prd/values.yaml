@@ -9,3 +9,10 @@ service-chart:
     pairs:
       VERSION: "prd"
       COLOR: "#dc3545" # Red for production
+
+  secretEnv:
+    pairs:
+      API_TOKEN: "api-token"
+
+  {{ENABLE_INGRESS}}
+  {{ENABLE_DATABASE}}

@@ -9,3 +9,10 @@ service-chart:
     pairs:
       VERSION: "tst"
       COLOR: "#17a2b8" # Blue for test
+
+  secretEnv:
+    pairs:
+      API_TOKEN: "api-token"
+
+  {{ENABLE_INGRESS}}
+  {{ENABLE_DATABASE}}

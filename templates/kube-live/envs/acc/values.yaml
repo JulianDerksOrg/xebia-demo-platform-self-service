@@ -9,3 +9,10 @@ service-chart:
     pairs:
       VERSION: "acc"
       COLOR: "#ffc107" # Yellow for acceptance
+
+  secretEnv:
+    pairs:
+      API_TOKEN: "api-token"
+
+  {{ENABLE_INGRESS}}
+  {{ENABLE_DATABASE}}
