@@ -45,7 +45,6 @@ This service is deployed via GitOps using ArgoCD.
 
 ### Environments
 
-- `dev` - Development
 - `tst` - Testing
 - `acc` - Acceptance
 - `prd` - Production

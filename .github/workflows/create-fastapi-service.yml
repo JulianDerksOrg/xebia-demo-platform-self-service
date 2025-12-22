@@ -133,17 +133,8 @@ jobs:
           git config user.name "platform-bot"
           git config user.email "platform@julianderksorg.com"
           git add -A
-          git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }} [skip ci]" || echo "Nothing to commit"
           git push origin main || git push -u origin main
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          cd src-repo
-          gh release create 0.0.0 \
-            --repo "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
-            --generate-notes
 
   create-kube-repo:
     needs: [validate]
@@ -287,10 +278,16 @@ jobs:
           echo "- **Source**: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" >> $GITHUB_STEP_SUMMARY
           echo "- **GitOps**: https://github.com/${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Start" >> $GITHUB_STEP_SUMMARY
+          echo "Run this command to clone the repos and create the initial release:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "gh repo clone ${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }} && gh repo clone ${{ env.GH_ORG }}/${{ needs.validate.outputs.kube_repo }} && cd ${{ needs.validate.outputs.src_repo }} && gh release create 0.0.0 --generate-notes" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Clone the source repo and start developing" >> $GITHUB_STEP_SUMMARY
-          echo "2. Push to main to trigger CI and build Docker image" >> $GITHUB_STEP_SUMMARY
-          echo "3. ArgoCD will automatically deploy to dev environment" >> $GITHUB_STEP_SUMMARY
+          echo "1. Run the commands above to clone repos and create release" >> $GITHUB_STEP_SUMMARY
+          echo "2. The release will trigger CI/CD and build the Docker image" >> $GITHUB_STEP_SUMMARY
+          echo "3. ArgoCD will automatically deploy to environments" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ArgoCD Applications" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ inputs.team }}-${{ inputs.service_name }}-tst" >> $GITHUB_STEP_SUMMARY
