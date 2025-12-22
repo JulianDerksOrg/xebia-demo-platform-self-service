@@ -5,6 +5,8 @@ on:
     tags:
       - "*"
 
+run-name: Release ${{ github.ref_name }}
+
 env:
   REGISTRY: europe-west4-docker.pkg.dev
   IMAGE_NAME: "{{GAR_REGISTRY}}/{{SERVICE_NAME}}"
