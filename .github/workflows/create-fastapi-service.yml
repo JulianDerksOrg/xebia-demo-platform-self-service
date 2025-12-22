@@ -133,12 +133,17 @@ jobs:
           git config user.name "platform-bot"
           git config user.email "platform@julianderksorg.com"
           git add -A
-          git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }}" || echo "Nothing to commit"
+          git commit -m "🎉 Initial scaffold for ${{ inputs.service_name }} [skip ci]" || echo "Nothing to commit"
           git push origin main || git push -u origin main
 
-          # Create initial tag to trigger release pipeline
-          git tag 0.0.0
-          git push origin --tags
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          cd src-repo
+          gh release create 0.0.0 \
+            --repo "${{ env.GH_ORG }}/${{ needs.validate.outputs.src_repo }}" \
+            --generate-notes
 
   create-kube-repo:
     needs: [validate]
