@@ -9,3 +9,4 @@ service-chart:
     pairs:
       VERSION: "tst"
       COLOR: "#17a2b8" # Blue for test
+
