@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-VERSION = os.getenv("VERSION", "not-set")
+VERSION = os.getenv("VERSION", "0.0.0")
 COLOR = os.getenv("COLOR", "#667eea")
 API_TOKEN = os.getenv("API_TOKEN", "not-set")
 
