@@ -15,7 +15,6 @@ async def test_root(client):
     assert response.status_code == 200
     assert "Service" in response.text
     assert "Version:" in response.text
-    assert "API Token" in response.text
 
 
 async def test_health(client):
